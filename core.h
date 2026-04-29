@@ -28,10 +28,10 @@ typedef double f64;
 #define MEGABYTE 1000000
 #define GIGABYTE 1000000000
 
-#include "csm_assert.h"
-#include "csm_stack.h"
-#include "csm_rect.h"
-#include "csm_random.h"
-#include "csm_math.h"
+#include "./assert.h"
+#include "./stack.h"
+#include "./rect.h"
+#include "./random.h"
+#include "./math.h"
 
 #endif
