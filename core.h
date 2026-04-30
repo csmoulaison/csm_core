@@ -1,6 +1,7 @@
 #ifndef core_h_INCLUDED
 #define core_h_INCLUDED
 
+#define _POSIX_C_SOURCE 200809L
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -10,6 +11,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <math.h>
+#include <sys/stat.h>
+#include <dlfcn.h>
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -33,5 +36,7 @@ typedef double f64;
 #include "./rect.h"
 #include "./random.h"
 #include "./math.h"
+#include "./fiedler.h"
+#include "./dynamic_library.h"
 
 #endif
