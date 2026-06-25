@@ -87,7 +87,7 @@ static inline v4 v4_identity();
 static inline v4 v4_lerp(v4 a, v4 b, f32 t);
 static inline void v4_copy(f32* dst, v4 v);
 // Radians
-static inline f32 radians_from_degrees(f32 degrees);
+static inline f32 radians(f32 degrees);
 // 4x4 matrices
 // These are all column major.
 // 
@@ -337,7 +337,7 @@ static inline void v4_copy(f32* dst, v4 v) {
 	dst[3] = v.w;
 }
 
-static inline f32 radians_from_degrees(f32 degrees) {
+static inline f32 radians(f32 degrees) {
 	return degrees * 0.0174533;
 }
 

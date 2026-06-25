@@ -32,6 +32,8 @@ typedef double f64;
 #define GIGABYTE 1000000000
 
 #include "./assert.h"
+#include "./log.h"
+#include "./buffer.h"
 #include "./stack.h"
 #include "./rect.h"
 #include "./random.h"

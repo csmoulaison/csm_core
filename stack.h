@@ -9,78 +9,78 @@
 
 typedef struct {
 	u64 index;
-	u64 capacity;
+	u64 size;
 	u8* data;
 	bool initialized;
 #if DEBUG_STACK
 	char debug_name[64];
 #endif
-} StackAllocator;
+} Stack;
 
-StackAllocator stack_init(u8* memory, u64 capacity, const char* debug_name);
-void stack_clear(StackAllocator* stack);
-void stack_clear_to_zero(StackAllocator* stack);
-void* stack_alloc(StackAllocator* stack, u64 size);
-void* stack_head(StackAllocator* stack);
+Stack stack_init(u8* memory, u64 size, const char* debug_name);
+void stack_clear(Stack* stack);
+void stack_clear_to_zero(Stack* stack);
+void* stack_alloc(Stack* stack, u64 size);
+void* stack_head(Stack* stack);
 
 #ifdef CSM_IMPLEMENTATION
 
-StackAllocator stack_init(u8* memory, u64 capacity, const char* debug_name)
+Stack stack_init(u8* memory, u64 size, const char* debug_name)
 {
-	StackAllocator stack;
+	Stack stack;
 	stack.data = memory;
 	stack.index = 0;
-	stack.capacity = capacity;
+	stack.size = size;
 	stack.initialized = true;
 
 #if DEBUG_STACK
 	sprintf(stack.debug_name, "%s", debug_name);
 #if DEBUG_LOGGING
-	printf("%s: StackAllocator initialized with capacity %lu.\n", debug_name, capacity);
+	printf("%s: Stack initialized with size %lu.\n", debug_name, size);
 #endif
 #endif
 
 	return stack;
 }
 
-void stack_clear(StackAllocator* stack)
+void stack_clear(Stack* stack)
 {
 	stack->index = 0;
 #if DEBUG_LOGGING
-	printf("%s: StackAllocator cleared.\n", stack->debug_name);
+	printf("%s: Stack cleared.\n", stack->debug_name);
 #endif
 }
 
-void stack_clear_to_zero(StackAllocator* stack)
+void stack_clear_to_zero(Stack* stack)
 {
 	memset(stack->data, 0, stack->index);
 	stack_clear(stack);
 }
 
-void* stack_head(StackAllocator* stack)
+void* stack_head(Stack* stack)
 {
 	return (void*)&stack->data[stack->index];
 }
 
-void* stack_alloc(StackAllocator* stack, u64 size)
+void* stack_alloc(Stack* stack, u64 size)
 {
 	assert(stack->data != NULL);
-	if(stack->index + size >= stack->capacity) {
+	if(stack->index + size > stack->size) {
 #if DEBUG_STACK
-		printf("%s: StackAllocator overflow! Capacity: %lu, Requested: %lu\n", stack->debug_name, stack->capacity, stack->index + size);
+		printf("%s: Stack overflow! Size: %lu, Requested: %lu\n", stack->debug_name, stack->size, stack->index + size);
 #endif
 		panic();
 	}
 
 #if DEBUG_LOGGING
-	printf("%s: StackAllocator allocation from %lu-%lu (%lu bytes)\n", stack->debug_name, stack->index, stack->index + size, size);
+	printf("%s: Stack allocation from %lu-%lu (%lu bytes)\n", stack->debug_name, stack->index, stack->index + size, size);
 #endif
 
 	stack->index += size;
 
 #if DEBUG_CAPACITY_WARNING
-	if(stack->index > stack->capacity / 2) {
-		printf("%s: \033[31mStackAllocator more than half full!\033[0m\n", stack->debug_name);
+	if(stack->index > stack->size / 2) {
+		printf("%s: Stack more than half full!\n", stack->debug_name);
 	}
 #endif
 
