@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <math.h>
 #include <sys/stat.h>
 #include <dlfcn.h>
 
@@ -37,8 +36,12 @@ typedef double f64;
 #include "./stack.h"
 #include "./rect.h"
 #include "./random.h"
-#include "./math.h"
 #include "./fiedler.h"
 #include "./dynamic_library.h"
+
+#ifndef CSM_SKIP_MATH
+#include <math.h>
+#include "./math.h"
+#endif
 
 #endif
