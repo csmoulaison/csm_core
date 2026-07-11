@@ -36,10 +36,16 @@ typedef double f64;
 #include "./stack.h"
 #include "./rect.h"
 #include "./random.h"
-#include "./fiedler.h"
-#include "./dynamic_library.h"
 
-#ifndef CSM_SKIP_MATH
+#ifdef CSM_FIEDLER
+#include "./fiedler.h"
+#endif
+
+#ifdef CSM_DYNAMIC_LIB
+#include "./dynamic_library.h"
+#endif
+
+#ifndef CSM_MATH
 #include <math.h>
 #include "./math.h"
 #endif
