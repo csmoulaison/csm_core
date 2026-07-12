@@ -58,4 +58,12 @@ typedef double f64;
 #include "./dynamic_library.h"
 #endif
 
+#ifdef CSM_MODULE_MESH
+#include "./mesh.h"
+#endif
+
+#ifdef CSM_MODULE_TEXTURE
+#include "./texture.h"
+#endif
+
 #endif
