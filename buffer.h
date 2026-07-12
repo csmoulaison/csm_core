@@ -21,13 +21,12 @@ typedef struct {
 #endif
 } Buffer;
 
-Buffer alloc_buffer(u64 size, char* debug_label);
-Buffer suballoc_buffer_at_byte(Buffer* buffer, u64 byte, u64 size, char* debug_label);
-Buffer suballoc_buffer_at_pointer(Buffer* buffer, void* pointer, u64 size, char* debug_label);
+Buffer buffer_alloc(u64 size, char* debug_label);
+Buffer buffer_suballoc_at_byte(Buffer* buffer, u64 byte_index, u64 size, char* debug_label);
 
 #ifdef CSM_IMPLEMENTATION
 
-Buffer _create_buffer(u64 size, void* memory, char* debug_label) {
+Buffer _buffer_create(u64 size, void* memory, char* debug_label) {
     Buffer buffer;
     buffer.memory = (u8*)memory;
     buffer.size = size;
@@ -37,19 +36,19 @@ Buffer _create_buffer(u64 size, void* memory, char* debug_label) {
     return buffer;
 }
 
-Buffer alloc_buffer(u64 size, char* debug_label) {
+Buffer buffer_alloc(u64 size, char* debug_label) {
     void* memory = malloc(size);
-    return _create_buffer(size, memory, debug_label);
+    return _buffer_create(size, memory, debug_label);
 }
 
-Buffer suballoc_buffer(Buffer* buffer, u64 byte_index, u64 size, char* debug_label) {
+Buffer buffer_suballoc(Buffer* buffer, u64 byte_index, u64 size, char* debug_label) {
 #if BUFFER_BOUNDS_CHECKING
     if(byte_index + size > buffer->size) {
         log_fail("suballoc_buffer: overrun!");
     }
 #endif
     u8* memory = &buffer->memory[byte_index];
-    return _create_buffer(size, memory, debug_label);
+    return _buffer_create(size, memory, debug_label);
 }
 
 #endif // CSM_IMPLEMENTATION
