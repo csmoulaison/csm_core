@@ -37,17 +37,25 @@ typedef double f64;
 #include "./rect.h"
 #include "./random.h"
 
-#ifdef CSM_FIEDLER
+#ifdef CSM_MODULE_MATH
+#include <math.h>
+#include "./math.h"
+#endif
+
+#ifdef CSM_MODULE_GL
+#include "./gl.h"
+#endif
+
+#ifdef CSM_MODULE_WINDOW
+#include "./window.h"
+#endif
+
+#ifdef CSM_MODULE_FIEDLER
 #include "./fiedler.h"
 #endif
 
-#ifdef CSM_DYNAMIC_LIB
+#ifdef CSM_MODULE_DYNAMIC_LIB
 #include "./dynamic_library.h"
-#endif
-
-#ifndef CSM_MATH
-#include <math.h>
-#include "./math.h"
 #endif
 
 #endif
