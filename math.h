@@ -6,7 +6,7 @@
 typedef struct {
 	union {
 		struct { f32 x; f32 y; };
-		f32 components[2];
+		f32 comps[2];
 	};
 } v2;
 
@@ -14,7 +14,7 @@ typedef struct {
 	union {
 		struct { f32 x; f32 y; f32 z; };
 		struct { f32 r; f32 g; f32 b; };
-		f32 components[3];
+		f32 comps[3];
 	};
 } v3;
 
@@ -22,14 +22,14 @@ typedef struct {
 	union {
 		struct { f32 x; f32 y; f32 z; f32 w; };
 		struct { f32 r; f32 g; f32 b; f32 a; };
-		f32 components[4];
+		f32 comps[4];
 	};
 } v4;
 
 typedef struct {
 	union {
 		struct { i32 x; i32 y; };
-		i32 components[2];
+		i32 comps[2];
 	};
 } iv2;
 

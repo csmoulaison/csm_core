@@ -22,7 +22,8 @@ typedef struct {
 } Buffer;
 
 Buffer buffer_alloc(u64 size, char* debug_label);
-Buffer buffer_suballoc_at_byte(Buffer* buffer, u64 byte_index, u64 size, char* debug_label);
+Buffer buffer_suballoc(Buffer* buffer, u64 byte_index, u64 size, char* debug_label);
+void buffer_free(Buffer* buffer);
 
 #ifdef CSM_IMPLEMENTATION
 
@@ -49,6 +50,10 @@ Buffer buffer_suballoc(Buffer* buffer, u64 byte_index, u64 size, char* debug_lab
 #endif
     u8* memory = &buffer->memory[byte_index];
     return _buffer_create(size, memory, debug_label);
+}
+
+void buffer_free(Buffer* buffer) {
+    free(buffer->memory);
 }
 
 #endif // CSM_IMPLEMENTATION
