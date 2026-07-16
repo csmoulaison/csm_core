@@ -36,6 +36,8 @@ typedef double f64;
 #include "./stack.h"
 #include "./rect.h"
 #include "./random.h"
+#include "./string.h"
+#include "./file.h"
 
 #ifdef CSM_MODULE_MATH
 #include <math.h>
