@@ -23,7 +23,7 @@ TextureData texture_from_bmp(char* bmp);
 #ifdef CSM_IMPLEMENTATION
 
 TextureData texture_from_bmp(String bmp) {
-    // String and file helpers first.
+
 }
 
 #endif

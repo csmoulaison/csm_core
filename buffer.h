@@ -10,7 +10,7 @@
 
 #ifndef BUFFER_LABELS
 #define BUFFER_LABELS false
-#define BUFFER_LABEL_MAX_LENGTH 16
+#define BUFFER_LABEL_MAX_LENGTH 64
 #endif
 
 typedef struct {
@@ -27,7 +27,7 @@ void buffer_free(Buffer* buffer);
 
 #ifdef CSM_IMPLEMENTATION
 
-Buffer _buffer_create(u64 size, void* memory, char* debug_label) {
+Buffer buffer_create(void* memory, u64 size, char* debug_label) {
     Buffer buffer;
     buffer.memory = (u8*)memory;
     buffer.size = size;
@@ -37,9 +37,9 @@ Buffer _buffer_create(u64 size, void* memory, char* debug_label) {
     return buffer;
 }
 
-Buffer buffer_alloc(u64 size, char* debug_label) {
+Buffer buffer_malloc(u64 size, char* debug_label) {
     void* memory = malloc(size);
-    return _buffer_create(size, memory, debug_label);
+    return buffer_create(memory, memory, debug_label);
 }
 
 Buffer buffer_suballoc(Buffer* buffer, u64 byte_index, u64 size, char* debug_label) {
