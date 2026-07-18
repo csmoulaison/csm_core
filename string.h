@@ -19,10 +19,12 @@ String string_from_buffer(Buffer* buffer);
 String string_from_stack(Stack* stack);
 
 StringWriter string_writer_init(String string, u64 capacity);
+StringWriter string_writer_from_memory(void* memory, u64 capacity);
 StringWriter string_writer_from_cstring(char* cstring, u64 capacity);
 StringWriter string_writer_from_buffer(Buffer* buffer, u64 capacity);
 StringWriter string_writer_from_stack(Stack* stack, u64 capacity);
 
+void sting_writer_clear(StringWriter* writer);
 void string_write_cstring(StringWriter writer, char* cstring);
 void string_write_cstring_len(StringWriter writer, char* cstring, u64 len);
 void string_write_i32(StringWriter writer, i32 n);
@@ -65,6 +67,13 @@ StringWriter string_writer_init(String* string, u64 capacity) {
     return writer;
 }
 
+StringWriter string_writer_from_memory(void* memory, u64 capacity) {
+    StringWriter writer;
+    writer.string = string_init(memory);
+    writer.capacity = capacity;
+    return writer;
+}
+
 StringWriter string_writer_init_cstring(char* cstring, u64 capacity) {
     StringWriter writer;
     writer.string = string_init_cstring(cstring);
@@ -84,6 +93,10 @@ StringWriter string_writer_from_buffer(Buffer* buffer, u64 capacity) {
     writer.string = string_from_buffer(buffer);
     writer.capacity = capacity;
     return writer;
+}
+
+void sting_writer_clear(StringWriter* writer) {
+    writer->string.len = 0;
 }
 
 void string_write_cstring(StringWriter* writer, char* cstring) {

@@ -15,6 +15,8 @@ typedef struct {
 } PixelData;
 
 typedef struct {
+    u64 width;
+    u64 height;
     PixelData pixels[TEXTURE_MAX_PIXELS];
 } TextureData;
 
@@ -22,8 +24,8 @@ TextureData texture_from_bmp(char* bmp);
 
 #ifdef CSM_IMPLEMENTATION
 
-TextureData texture_from_bmp(String bmp) {
-
+TextureData texture_from_bmp(String* bmp) {
+    return TextureData{};
 }
 
 #endif
