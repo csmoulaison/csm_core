@@ -21,7 +21,7 @@ typedef struct {
 #endif
 } Buffer;
 
-Buffer buffer_alloc(u64 size, char* debug_label);
+Buffer buffer_malloc(u64 size, char* debug_label);
 Buffer buffer_suballoc(Buffer* buffer, u64 byte_index, u64 size, char* debug_label);
 void buffer_free(Buffer* buffer);
 
@@ -39,7 +39,7 @@ Buffer buffer_create(void* memory, u64 size, char* debug_label) {
 
 Buffer buffer_malloc(u64 size, char* debug_label) {
     void* memory = malloc(size);
-    return buffer_create(memory, memory, debug_label);
+    return buffer_create(memory, size, debug_label);
 }
 
 Buffer buffer_suballoc(Buffer* buffer, u64 byte_index, u64 size, char* debug_label) {
@@ -49,7 +49,7 @@ Buffer buffer_suballoc(Buffer* buffer, u64 byte_index, u64 size, char* debug_lab
     }
 #endif
     u8* memory = &buffer->memory[byte_index];
-    return _buffer_create(size, memory, debug_label);
+    return buffer_create(memory, size, debug_label);
 }
 
 void buffer_free(Buffer* buffer) {

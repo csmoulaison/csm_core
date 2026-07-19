@@ -145,7 +145,7 @@ MeshData mesh_from_obj(char* obj) {
     u64 uv_bytes   = vt_count * sizeof(v2);
     u64 norm_bytes = vn_count * sizeof(v3);
     u64 face_bytes = f_count  * 3 * sizeof(_MeshObjFaceVertex);
-    Buffer buffer = buffer_alloc(
+    Buffer buffer = buffer_malloc(
         vert_bytes + uv_bytes + norm_bytes + face_bytes, "Global");
     Stack stack = stack_init(buffer.memory, buffer.size, "Global");
 

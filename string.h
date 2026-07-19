@@ -15,20 +15,21 @@ typedef struct {
 
 String string_init(void* buffer);
 String string_from_cstring(char* cstring);
-String string_from_buffer(Buffer* buffer);
-String string_from_stack(Stack* stack);
+String string_from_buffer(Buffer* buffer, u64 byte_index, u64 len);
+String string_from_stack(Stack* stack, u64 len);
+void string_to_cstring(String* string, char* buffer, u64 buffer_size);
 
 StringWriter string_writer_init(String string, u64 capacity);
 StringWriter string_writer_from_memory(void* memory, u64 capacity);
 StringWriter string_writer_from_cstring(char* cstring, u64 capacity);
-StringWriter string_writer_from_buffer(Buffer* buffer, u64 capacity);
+StringWriter string_writer_from_buffer(Buffer* buffer, u64 byte_index, u64 capacity);
 StringWriter string_writer_from_stack(Stack* stack, u64 capacity);
 
-void sting_writer_clear(StringWriter* writer);
-void string_write_cstring(StringWriter writer, char* cstring);
-void string_write_cstring_len(StringWriter writer, char* cstring, u64 len);
-void string_write_i32(StringWriter writer, i32 n);
-void string_write_f32(StringWriter writer, f32 n);
+void string_writer_clear(StringWriter* writer);
+void string_write_cstring(StringWriter* writer, char* cstring);
+void string_write_char_buffer(StringWriter* writer, char* cstring, u64 len);
+void string_write_i32(StringWriter* writer, i32 n);
+void string_write_f32(StringWriter* writer, f32 n);
 
 #ifdef CSM_IMPLEMENTATION
 
@@ -41,14 +42,14 @@ String string_init(void* memory) {
 
 String string_from_cstring(char* cstring) {
     String string;
-    string.text = text;
-    string.len = strlen(text);
+    string.text = cstring;
+    string.len = strlen(cstring);
     return string;
 }
 
 String string_from_buffer(Buffer* buffer, u64 byte_index, u64 len) {
     String string;
-    string.text = buffer_suballoc(buffer, byte_index, len, "string_from_buffer");
+    string.text = buffer_suballoc(buffer, byte_index, len, "string_from_buffer").memory;
     string.len = len;
     return string;
 }
@@ -60,9 +61,14 @@ String string_from_stack(Stack* stack, u64 len) {
     return string;
 }
 
-StringWriter string_writer_init(String* string, u64 capacity) {
+void string_to_cstring(String* string, char* buffer, u64 buffer_size) {
+    assert(string->len <= buffer_size);
+    memcpy(buffer, string->text, string->len);
+}
+
+StringWriter string_writer_init(String string, u64 capacity) {
     StringWriter writer;
-    writer.string = &string;
+    writer.string = string;
     writer.capacity = capacity;
     return writer;
 }
@@ -76,26 +82,28 @@ StringWriter string_writer_from_memory(void* memory, u64 capacity) {
 
 StringWriter string_writer_init_cstring(char* cstring, u64 capacity) {
     StringWriter writer;
-    writer.string = string_init_cstring(cstring);
+    writer.string = string_from_cstring(cstring);
     writer.capacity = capacity;
     return writer;
 }
 
 StringWriter string_writer_from_stack(Stack* stack, u64 capacity) {
     StringWriter writer;
-    writer.string = string_from_stack(stack);
+    writer.string = string_from_stack(stack, capacity);
+    writer.string.len = 0;
     writer.capacity = capacity;
     return writer;
 }
 
-StringWriter string_writer_from_buffer(Buffer* buffer, u64 capacity) {
+StringWriter string_writer_from_buffer(Buffer* buffer, u64 byte_index, u64 capacity) {
     StringWriter writer;
-    writer.string = string_from_buffer(buffer);
+    writer.string = string_from_buffer(buffer, byte_index, capacity);
+    writer.string.len = 0;
     writer.capacity = capacity;
     return writer;
 }
 
-void sting_writer_clear(StringWriter* writer) {
+void string_writer_clear(StringWriter* writer) {
     writer->string.len = 0;
 }
 
@@ -105,26 +113,28 @@ void string_write_cstring(StringWriter* writer, char* cstring) {
         fprintf(stderr, "String writer capacity overflow.\n");
         panic();
     }
-    memcpy(writer->string.text, cstring, len);
+    memcpy(&writer->string.text[writer->string.len], cstring, len);
     writer->string.len += len;
 }
 
-void string_write_cstring_len(StringWriter* writer, char* cstring, u64 len) {
+void string_write_char_buffer(StringWriter* writer, char* cstring, u64 len) {
     if(writer->string.len + len > writer->capacity) {
-        fprintf(stderr, "String writer capacity overflow.\n");
+        fprintf(stderr, "String writer capacity overflow. Capacity: %i, Requested: %i\n", 
+            writer->capacity,
+            writer->string.len + len);
         panic();
     }
-    memcpy(writer->string.text, cstring, len);
+    memcpy(&writer->string.text[writer->string.len], cstring, len);
     writer->string.len += len;
 }
 
 void string_write_i32(StringWriter* writer, i32 n) {
-    TODO: implement
+    // TODO: implement
     panic();
 }
 
 void string_write_float(StringWriter* writer, f32 n) {
-    TODO: implement
+    // TODO: implement
     panic();
 }
 
