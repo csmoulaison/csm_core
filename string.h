@@ -1,6 +1,8 @@
 #ifndef csm_string_h_INCLUDED
 #define csm_string_h_INCLUDED
 
+#include <ctype.h>
+
 // TODO: Implement. Usage code first.
 
 typedef struct {
@@ -30,6 +32,8 @@ void string_write_cstring(StringWriter* writer, char* cstring);
 void string_write_char_buffer(StringWriter* writer, char* cstring, u64 len);
 void string_write_i32(StringWriter* writer, i32 n);
 void string_write_f32(StringWriter* writer, f32 n);
+
+void cstring_to_uppercase(char* s);
 
 #ifdef CSM_IMPLEMENTATION
 
@@ -136,6 +140,13 @@ void string_write_i32(StringWriter* writer, i32 n) {
 void string_write_float(StringWriter* writer, f32 n) {
     // TODO: implement
     panic();
+}
+
+void cstring_to_uppercase(char* s) {
+    while(*s != '\0') {
+        *s = toupper(*s);
+        s += 1;
+    }
 }
 
 #endif
