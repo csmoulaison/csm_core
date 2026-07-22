@@ -1,10 +1,6 @@
 #ifndef csm_texture_h_INCLUDED
 #define csm_texture_h_INCLUDED
 
-#ifndef TEXTURE_MAX_PIXELS
-#define TEXTURE_MAX_PIXELS 16000000
-#endif
-
 typedef struct {
     union {
         u32 pixel;
@@ -12,12 +8,12 @@ typedef struct {
             u8 r, g, b, a;
         } components;
     };
-} PixelData;
+} TexturePixelData;
 
 typedef struct {
     u64 width;
     u64 height;
-    PixelData pixels[TEXTURE_MAX_PIXELS];
+    TexturePixelData pixels[];
 } TextureData;
 
 #pragma pack(push, 1)
@@ -40,28 +36,43 @@ typedef struct {
 } TextureBmpInfo;
 #pragma pack(pop)
 
-void texture_from_bmp(String* bmp, TextureData* data);
+TextureData* texture_from_bmp(File* file, Stack* stack);
+u64 texture_size_from_dimensions(u64 width, u64 height);
+u64 texture_size(TextureData* texture);
 
 #ifdef CSM_IMPLEMENTATION
 
-void texture_from_bmp(String* bmp, TextureData* data) {
-    assert(bmp->len >= sizeof(TextureBmpInfo));
-    TextureBmpInfo* info = (TextureBmpInfo*)bmp->text;
+TextureData* texture_from_bmp(File* file, Stack* stack) {
+    assert(sizeof(TextureBmpInfo) == 54);
+    TextureBmpInfo info = {};
+    file_read(file, info, sizeof(TextureBmpInfo));
 
-    assert(info->signature[0] == 'B' && info->signature[1] == 'M');
-    assert(info->width * info->height <= TEXTURE_MAX_PIXELS);
+    assert(info.signature[0] == 'B' && info.signature[1] == 'M');
+    assert(info.width * info.height <= TEXTURE_MAX_PIXELS);
     assert(info->bits_per_pixel == 32);
-    assert(info->compression == 0);
+    assert(info.compression == 0);
 
-    data->width = info->width;
-    data->height = info->height;
-    for(i32 i = 0; i < info->width * info->height; i++) {
-        u8* pixel = bmp->text + info->data_offset + i * 4;
-        data->pixels[i].components.r = *(pixel+3);
-        data->pixels[i].components.g = *(pixel+2);
-        data->pixels[i].components.b = *(pixel+1);
-        data->pixels[i].components.a = *(pixel+0);
+    TextureData* data = (TextureData*)stack_alloc(
+        &stack, texture_size_from_dimensions(info->width, info->height));
+    data->width = info.width;
+    data->height = info.height;
+    for(i32 i = 0; i < info.width * info.height; i++) {
+        u8 pixels[4];
+        file_read(file, pixels, sizeof(pixels));
+        // BMP files store pixels in ABGR order.
+        data->pixels[i].components.r = *(pixels[3]);
+        data->pixels[i].components.g = *(pixels[2]);
+        data->pixels[i].components.b = *(pixels[1]);
+        data->pixels[i].components.a = *(pixels[0]);
     }
+}
+
+u64 texture_size_from_dimensions(u64 width, u64 height) {
+    return sizeof(TextureData) + width * height * sizeof(TexturePixelData));
+}
+
+u64 texture_size(TextureData* data) {
+    return texture_size_from_dimensions(data->width, data->height);
 }
 
 #endif

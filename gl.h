@@ -78,7 +78,6 @@ void gl_get_file_info(char* fname, char** out_src, u32* out_src_len) {
 
 u32 gl_compile_shader(const char* src, i32 src_len, GLenum type) {
 	u32 shader = glCreateShader(type);
-	//const char* src_ptr = src;
 	glShaderSource(shader, 1, &src, &src_len);
 	glCompileShader(shader);
 

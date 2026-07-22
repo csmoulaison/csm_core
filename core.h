@@ -32,11 +32,11 @@ typedef double f64;
 
 #include "./assert.h"
 #include "./log.h"
+#include "./string.h"
 #include "./buffer.h"
 #include "./stack.h"
 #include "./rect.h"
 #include "./random.h"
-#include "./string.h"
 #include "./file.h"
 
 #ifdef CSM_MODULE_MATH
@@ -54,6 +54,14 @@ typedef double f64;
 
 #ifdef CSM_MODULE_FIEDLER
 #include "./fiedler.h"
+#endif
+
+#ifdef CSM_MODULE_ASSET_BUILDER
+#include "./asset_builder.h"
+#endif
+
+#ifdef CSM_MODULE_BUILD
+#include "./build.h"
 #endif
 
 #ifdef CSM_MODULE_DYNAMIC_LIB
