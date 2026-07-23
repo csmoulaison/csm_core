@@ -48,37 +48,54 @@ BuildResult build_static(String name, String main_path, u64 flags, Stack* stack)
     }
 
     string_cat(&cmd, main_path);
-    string_cat(&cmd, " -o bin/");
+    string_cat(&cmd, string_new(" -o bin/"));
     string_cat(&cmd, name);
 
     string_cat(&cmd, string_new("\0"));
     system(cmd.text);
 }
 
-// NOW: We are adapting the following lines from the old comet Makefile.
-// mkdir -p bin
-// mkdir -p build
-// gcc $(FLAGS) -c -fPIC -o build/comet.o code/game.c $(INCLUDE)
-// gcc $(FLAGS) -shared build/comet.o -o bin/comet_tmp.so $(INCLUDE) -lm
-// mv bin/comet_tmp.so bin/comet.so
-// -rm bin/comet_*
 BuildResult build_dynamic(String name, String main_path, u64 flags, Stack* stack) {
     system("mkdir -p bin");
     system("mkdir -p build");
+
+    String comet_o = string_from_stack(stack, 4096);
+    string_cat(&comet_o, name);
+    string_cat(&comet_o, string_new(".o"));
+
+    String comet_tmp_so = string_from_stack(stack, 4096);
+    string_cat(&comet_tmp_so, name);
+    string_cat(&comet_tmp_so, string_new("_tmp.so"));
+
     String cmd = string_from_stack(stack, 8196);
     string_cat(&cmd, string_new(BUILD_COMMON_PREFIX));
-
-    // TODO: first command
-
+    string_cat(&cmd, string_new("-c -fPIC -o build/"));
+    string_cat(&cmd, comet_o);
+    string_cat(&cmd, string_new(" "));
+    string_cat(&cmd, main_path);
     string_cat(&cmd, string_new("\0"));
     system(cmd.text);
 
     string_clear(&cmd);
+    string_cat(&cmd, string_new(BUILD_COMMON_PREFIX));
+    string_cat(&cmd, string_new("-shared build/"));
+    string_cat(&cmd, comet_o);
+    string_cat(&cmd, string_new(" -o bin/"));
+    string_cat(&cmd, comet_tmp_so);
+    string_cat(&cmd, string_new(" -lm\0"));
+    system(cmd.text);
 
-    // TODO: second command
-
+    string_clear(&cmd);
+    string_cat(&cmd, string_new("mv bin/"));
+    string_cat(&cmd, comet_tmp_so);
+    string_cat(&cmd, string_new(" bin/"));
+    string_cat(&cmd, name);
+    string_cat(&cmd, string_new(".so"));
     string_cat(&cmd, string_new("\0"));
     system(cmd.text);
+
+    // TODO:
+    // -rm bin/comet_*
 }
 
 #endif

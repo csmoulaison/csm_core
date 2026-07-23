@@ -45,30 +45,29 @@ u64 texture_size(TextureData* texture);
 TextureData* texture_from_bmp(File* file, Stack* stack) {
     assert(sizeof(TextureBmpInfo) == 54);
     TextureBmpInfo info = {};
-    file_read(file, info, sizeof(TextureBmpInfo));
+    file_read(file, &info, sizeof(TextureBmpInfo));
 
     assert(info.signature[0] == 'B' && info.signature[1] == 'M');
-    assert(info.width * info.height <= TEXTURE_MAX_PIXELS);
-    assert(info->bits_per_pixel == 32);
+    assert(info.bits_per_pixel == 32);
     assert(info.compression == 0);
 
     TextureData* data = (TextureData*)stack_alloc(
-        &stack, texture_size_from_dimensions(info->width, info->height));
+        stack, texture_size_from_dimensions(info.width, info.height));
     data->width = info.width;
     data->height = info.height;
     for(i32 i = 0; i < info.width * info.height; i++) {
         u8 pixels[4];
         file_read(file, pixels, sizeof(pixels));
         // BMP files store pixels in ABGR order.
-        data->pixels[i].components.r = *(pixels[3]);
-        data->pixels[i].components.g = *(pixels[2]);
-        data->pixels[i].components.b = *(pixels[1]);
-        data->pixels[i].components.a = *(pixels[0]);
+        data->pixels[i].components.r = pixels[3];
+        data->pixels[i].components.g = pixels[2];
+        data->pixels[i].components.b = pixels[1];
+        data->pixels[i].components.a = pixels[0];
     }
 }
 
 u64 texture_size_from_dimensions(u64 width, u64 height) {
-    return sizeof(TextureData) + width * height * sizeof(TexturePixelData));
+    return sizeof(TextureData) + width * height * sizeof(TexturePixelData);
 }
 
 u64 texture_size(TextureData* data) {

@@ -1,5 +1,5 @@
-#ifndef buffer_h_INCLUDED
-#define buffer_h_INCLUDED
+#ifndef csm_buffer_h_INCLUDED
+#define csm_buffer_h_INCLUDED
 
 // TODO: Debug build code for tracking suballocations.
 
@@ -16,7 +16,7 @@
 #define BUFFER_MAX_TRACKED_SUBALLOCATIONS 64
 #endif
 
-typedef BufferType u8
+typedef u8 BufferType;
 #define BUFFER_TYPE_RAW    1 << 0
 #define BUFFER_TYPE_BUFFER 1 << 1
 #define BUFFER_TYPE_STACK  1 << 2
@@ -38,6 +38,8 @@ Buffer buffer_alloc(Buffer* buffer, u64 at_byte, u64 size, String label);
 Buffer buffer_alloc_typed(Buffer* buffer, u64 at_byte, u64 size, String label, BufferType type);
 Buffer buffer_from_memory(void* memory, u64 size, String label);
 Buffer buffer_from_memory_typed(void* memory, u64 size, String label, BufferType type);
+// Defined here to clear up circular dependency.
+String string_from_buffer(Buffer* buffer, u64 byte_index, u64 capacity);
 Buffer buffer_malloc(u64 size, String label);
 // This is only useful for when BUFFER_TRACKING is active.
 void buffer_clear_suballocations(Buffer* buffer);
@@ -51,12 +53,13 @@ Buffer buffer_alloc(Buffer* buffer, u64 at_byte, u64 size, String label) {
 Buffer buffer_alloc_typed(Buffer* parent, u64 at_byte, u64 size, String label, BufferType type) {
 #if BUFFER_BOUNDS_CHECKING
     if(at_byte + size > parent->size) {
-        log_fail("suballoc_buffer: overrun!");
+        fprintf(stderr, "buffer_alloc_typed: overflow\n");
+        panic();
     }
 #endif
 
     Buffer child = {};
-    child.memory = &buffer->memory[at_byte];
+    child.memory = &parent->memory[at_byte];
     child.size = size;
 
 #if BUFFER_TRACKING
@@ -67,7 +70,7 @@ Buffer buffer_alloc_typed(Buffer* parent, u64 at_byte, u64 size, String label, B
 }
 
 Buffer buffer_from_memory(void* memory, u64 size, String label) {
-    return buffer_type_from_memory(memory, size, label, BUFFER_TYPE_RAW);
+    return buffer_from_memory_typed(memory, size, label, BUFFER_TYPE_RAW);
 }
 
 Buffer buffer_from_memory_typed(void* memory, u64 size, String label, BufferType type) {
@@ -76,10 +79,18 @@ Buffer buffer_from_memory_typed(void* memory, u64 size, String label, BufferType
     buffer.size = size;
 
 #if BUFFER_TRACKING
-    strncpy(buffer.label, label, BUFFER_LABEL_MAX_LENGTH);
+    buffer.label = label;
     buffer.type = type;
 #endif
     return buffer;
+}
+
+String string_from_buffer(Buffer* buffer, u64 byte_index, u64 capacity) {
+    String string;
+    string.text = buffer_alloc(buffer, byte_index, capacity, string_new("string_from_buffer")).memory;
+    string.len = 0;
+    string.capacity = capacity;
+    return string;
 }
 
 Buffer buffer_malloc(u64 size, String label) {

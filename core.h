@@ -13,18 +13,18 @@
 #include <sys/stat.h>
 #include <dlfcn.h>
 
-typedef uint8_t u8;
+typedef uint8_t  u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
 
-typedef int8_t i8;
-typedef int16_t i16;
-typedef int32_t i32;
-typedef int64_t i64;
+typedef int8_t   i8;
+typedef int16_t  i16;
+typedef int32_t  i32;
+typedef int64_t  i64;
 
-typedef float f32;
-typedef double f64;
+typedef float    f32;
+typedef double   f64;
 
 #define KILOBYTE 1000
 #define MEGABYTE 1000000
@@ -74,6 +74,14 @@ typedef double f64;
 
 #ifdef CSM_MODULE_TEXTURE
 #include "./texture.h"
+#endif
+
+#ifdef CSM_MODULE_FONT
+#include "./font.h"
+#endif
+
+#ifdef CSM_MODULE_BLENDER
+#include "./blender.h"
 #endif
 
 #endif
