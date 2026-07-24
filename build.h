@@ -16,6 +16,8 @@
 #define BUILD_FLAG_TARGET_X11 1 << 4
 #define BUILD_FLAG_LINK_MATH  1 << 5
 
+#define BUILD_SYSTEM_CALL(call) { system_call_result = system(call); if(system_call_result != 0) { printf("build error: system_call failed on line %i\n", __LINE__); exit(1); } }
+
 typedef enum {
     BUILD_RESULT_SUCCESS,
     BUILD_RESULT_ERROR
@@ -52,7 +54,11 @@ BuildResult build_static(String name, String main_path, u64 flags, Stack* stack)
     string_cat(&cmd, name);
 
     string_write_null_terminator(&cmd);
-    system(cmd.text);
+    if(system(cmd.text) != 0) {
+        return BUILD_RESULT_ERROR;
+    }
+
+    return BUILD_RESULT_SUCCESS;
 }
 
 BuildResult build_dynamic(String name, String main_path, u64 flags, Stack* stack) {
@@ -74,7 +80,9 @@ BuildResult build_dynamic(String name, String main_path, u64 flags, Stack* stack
     string_cat(&cmd, string_const(" "));
     string_cat(&cmd, main_path);
     string_write_null_terminator(&cmd);
-    system(cmd.text);
+    if(system(cmd.text) != 0) {
+        return BUILD_RESULT_ERROR;
+    }
 
     string_clear(&cmd);
     string_cat(&cmd, string_const(BUILD_COMMON_PREFIX));
@@ -84,7 +92,9 @@ BuildResult build_dynamic(String name, String main_path, u64 flags, Stack* stack
     string_cat(&cmd, comet_tmp_so);
     string_cat(&cmd, string_const(" -lm"));
     string_write_null_terminator(&cmd);
-    system(cmd.text);
+    if(system(cmd.text) != 0) {
+        return BUILD_RESULT_ERROR;
+    }
 
     string_clear(&cmd);
     string_cat(&cmd, string_const("mv bin/"));
@@ -93,10 +103,13 @@ BuildResult build_dynamic(String name, String main_path, u64 flags, Stack* stack
     string_cat(&cmd, name);
     string_cat(&cmd, string_const(".so"));
     string_write_null_terminator(&cmd);
-    system(cmd.text);
+    if(system(cmd.text) != 0) {
+        return BUILD_RESULT_ERROR;
+    }
 
     // TODO:
     // -rm bin/comet_*
+    return BUILD_RESULT_SUCCESS;
 }
 
 #endif
