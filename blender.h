@@ -2,10 +2,10 @@
 #define csm_blender_h_INCLUDED
 
 char blender_export_obj_cmd[] = 
-    "blender --background --python build/blender_export_obj.py -- %blend_path %obj_path";
+    "blender --background --python build/obj_tmp.py -- %blend_path %obj_path";
 
 char blender_export_bmp_cmd[] = 
-    "blender --background --python build/blender_export_bmp.py -- %blend_path %bmp_path, %img_name";
+    "blender --background --python build/bmp_tmp.py -- %blend_path %bmp_path %img_name";
 
 char blender_export_obj_python[] = 
     "import bpy, sys, pathlib\n"
@@ -43,29 +43,29 @@ void blender_export_bmp(String blend_path, String bmp_path, String img_name);
 #ifdef CSM_IMPLEMENTATION
 
 void blender_export_obj(String blend_path, String obj_path) {
-    File py_file = file_open(string_new("obj_tmp.py"), FILE_OPEN_WRITE);
-    file_write(&py_file, blender_export_obj_python, sizeof(blender_export_obj_python));
+    File py_file = file_open(string_const("build/obj_tmp.py"), FILE_OPEN_WRITE);
+    file_write(&py_file, blender_export_obj_python, sizeof(blender_export_obj_python) - 1);
     file_close(&py_file);
 
     String blender_cmd = string_init((char[4096]){}, 4096);
-    string_cat(&blender_cmd, string_new(blender_export_obj_cmd));
-    string_replace_substring(&blender_cmd, string_new("%blend_path"), blend_path);
-    string_replace_substring(&blender_cmd, string_new("%obj_path"), obj_path);
-    string_cat(&blender_cmd, string_new("\0"));
+    string_cat(&blender_cmd, string_const(blender_export_obj_cmd));
+    string_replace_substring(&blender_cmd, string_const("%blend_path"), blend_path);
+    string_replace_substring(&blender_cmd, string_const("%obj_path"), obj_path);
+    string_write_null_terminator(&blender_cmd);
     system(blender_cmd.text);
 }
 
 void blender_export_bmp(String blend_path, String bmp_path, String img_name) {
-    File py_file = file_open(string_new("bmp_tmp.py"), FILE_OPEN_WRITE);
-    file_write(&py_file, blender_export_bmp_python, sizeof(blender_export_bmp_python));
+    File py_file = file_open(string_const("build/bmp_tmp.py"), FILE_OPEN_WRITE);
+    file_write(&py_file, blender_export_bmp_python, sizeof(blender_export_bmp_python) - 1);
     file_close(&py_file);
      
     String blender_cmd = string_init((char[4096]){}, 4096);
-    string_cat(&blender_cmd, string_new(blender_export_bmp_cmd));
-    string_replace_substring(&blender_cmd, string_new("%blend_path"), blend_path);
-    string_replace_substring(&blender_cmd, string_new("%bmp_path"), bmp_path);
-    string_replace_substring(&blender_cmd, string_new("%img_name"), img_name);
-    string_cat(&blender_cmd, string_new("\0"));
+    string_cat(&blender_cmd, string_const(blender_export_bmp_cmd));
+    string_replace_substring(&blender_cmd, string_const("%blend_path"), blend_path);
+    string_replace_substring(&blender_cmd, string_const("%bmp_path"), bmp_path);
+    string_replace_substring(&blender_cmd, string_const("%img_name"), img_name);
+    string_write_null_terminator(&blender_cmd);
     system(blender_cmd.text);
 }
 

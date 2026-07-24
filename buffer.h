@@ -87,7 +87,7 @@ Buffer buffer_from_memory_typed(void* memory, u64 size, String label, BufferType
 
 String string_from_buffer(Buffer* buffer, u64 byte_index, u64 capacity) {
     String string;
-    string.text = buffer_alloc(buffer, byte_index, capacity, string_new("string_from_buffer")).memory;
+    string.text = buffer_alloc(buffer, byte_index, capacity, string_const("string_from_buffer")).memory;
     string.len = 0;
     string.capacity = capacity;
     return string;

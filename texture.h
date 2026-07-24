@@ -64,6 +64,7 @@ TextureData* texture_from_bmp(File* file, Stack* stack) {
         data->pixels[i].components.b = pixels[1];
         data->pixels[i].components.a = pixels[0];
     }
+    return data;
 }
 
 u64 texture_size_from_dimensions(u64 width, u64 height) {

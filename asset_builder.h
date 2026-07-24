@@ -39,9 +39,6 @@ void asset_builder_init(AssetBuilder* builder, Stack* stack) {
 }
 
 void asset_builder_push_asset(AssetBuilder* builder, String tag, String type_name, void* data, u64 size) {
-    string_to_upper(&tag);
-    string_to_upper(&type_name);
-
     AssetType* type = NULL;
     for(i32 i = 0; i < builder->types_len; i++) {
         if(string_equals(type_name, builder->types[i].name)) {
@@ -74,23 +71,23 @@ void asset_builder_output_pack(AssetBuilder* builder, String path) {
 
 void asset_builder_output_header(AssetBuilder* builder, String path) {
     File file = file_open(path, FILE_OPEN_WRITE);
-    file_write_string(&file, string_new("// Pregenerated file. Any changes made will be erased on recompilation.\n\n"));
+    file_write_string(&file, string_const("// Pregenerated file. Any changes made will be erased on recompilation.\n\n"));
     for(i32 i = 0; i < builder->types_len; i++) {
         AssetType* type = &builder->types[i];
-        file_write_string(&file, string_new("#define "));
+        file_write_string(&file, string_const("#define "));
         file_write_string(&file, type->name);
-        file_write_string(&file, string_new("_COUNT "));
+        file_write_string(&file, string_const("_COUNT "));
         file_print_int(&file, type->assets_len);
-        file_write_string(&file, string_new("\n"));
+        file_write_string(&file, string_const("\n"));
         for(i32 j = 0; j < type->assets_len; j++) {
             Asset* asset = &type->assets[j];
-            file_write_string(&file, string_new("#define "));
+            file_write_string(&file, string_const("#define "));
             file_write_string(&file, type->name);
-            file_write_string(&file, string_new("_"));
+            file_write_string(&file, string_const("_"));
             file_write_string(&file, asset->tag);
-            file_write_string(&file, string_new("\n"));
+            file_write_string(&file, string_const("\n"));
         }
-        file_write_string(&file, string_new("\n"));
+        file_write_string(&file, string_const("\n"));
     }
     file_close(&file);
 }

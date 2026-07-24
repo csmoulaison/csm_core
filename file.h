@@ -45,7 +45,7 @@ File file_open(String fname, FileOpenMode mode) {
     FILE* handle;
     String fname_cstring = string_init((char[fname.len+1]){}, fname.len+1);
     string_cat(&fname_cstring, fname);
-    string_cat(&fname_cstring, string_new("\0"));
+    string_write_null_terminator(&fname_cstring);
     switch(mode) {
         case FILE_OPEN_READ: {
             handle = fopen(fname_cstring.text, "r");
@@ -61,7 +61,10 @@ File file_open(String fname, FileOpenMode mode) {
             panic();
         } break;
     }
-    assert(handle != NULL);
+    if(handle == NULL) {
+        fprintf(stderr, "File '%s' could not be opened.\n", fname_cstring.text);
+        panic();
+    }
     File file;
     file.handle = handle;
     return file;
@@ -129,15 +132,19 @@ void file_read_line(File* file, String* dst) {
         if(c == EOF) {
             return;
         }
-        string_write_char(dst, c);
+        if(dst != NULL) {
+            string_write_char(dst, c);
+        }
     }
 }
 
 u64 file_read_string_token(File* file, String* dst, char delimiter) {
     u64 len = 0;
     char c = 0;
-    while((c = fgetc(file->handle)) != EOF || c != '\n' || c != delimiter) {
-        string_write_char(dst, c);
+    while((c = fgetc(file->handle)) != EOF && c != '\n' && c != delimiter) {
+        if(dst != NULL) {
+            string_write_char(dst, c);
+        }
         len++;
     }
     return len;
@@ -147,7 +154,7 @@ u64 file_read_string_token(File* file, String* dst, char delimiter) {
 i64 file_read_int_token(File* file, char delimiter) {
     String tmp = string_init((char[256]){}, 256);
     file_read_string_token(file, &tmp, delimiter);
-    string_write_char(&tmp, '\0');
+    string_write_null_terminator(&tmp);
     char* end;
     i64 n = strtol(tmp.text, &end, 10);
     errno = 0;
@@ -164,7 +171,7 @@ i64 file_read_int_token(File* file, char delimiter) {
 f64 file_read_float_token(File* file, char delimiter) {
     String tmp = string_init((char[256]){}, 256);
     file_read_string_token(file, &tmp, delimiter);
-    string_write_char(&tmp, '\0');
+    string_write_null_terminator(&tmp);
     char* end;
     f64 n = strtof(tmp.text, &end);
     if (end == tmp.text) {

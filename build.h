@@ -30,28 +30,28 @@ BuildResult build_static(String name, String main_path, u64 flags, Stack* stack)
     system("mkdir -p bin");
     system("mkdir -p build");
     String cmd = string_from_stack(stack, 8196);
-    string_cat(&cmd, string_new(BUILD_COMMON_PREFIX));
+    string_cat(&cmd, string_const(BUILD_COMMON_PREFIX));
 
     if(flags & BUILD_FLAG_RELEASE) 
-        string_cat(&cmd, string_new(BUILD_RELEASE_FLAGS));
+        string_cat(&cmd, string_const(BUILD_RELEASE_FLAGS));
     if(flags & BUILD_FLAG_DEBUG) 
-        string_cat(&cmd, string_new(BUILD_DEBUG_FLAGS));
+        string_cat(&cmd, string_const(BUILD_DEBUG_FLAGS));
     if(flags & BUILD_FLAG_WARNINGS) 
-        string_cat(&cmd, string_new(BUILD_WARNING_FLAGS));
+        string_cat(&cmd, string_const(BUILD_WARNING_FLAGS));
     if(flags & BUILD_FLAG_LINK_GL3W) 
-        string_cat(&cmd, string_new(BUILD_GL3W_FLAGS));
+        string_cat(&cmd, string_const(BUILD_GL3W_FLAGS));
 
     if(flags & BUILD_FLAG_TARGET_X11) {
-        string_cat(&cmd, string_new(BUILD_X11_FLAGS));
+        string_cat(&cmd, string_const(BUILD_X11_FLAGS));
     } else if(flags & BUILD_FLAG_LINK_MATH) {
-        string_cat(&cmd, string_new(BUILD_MATH_FLAGS));
+        string_cat(&cmd, string_const(BUILD_MATH_FLAGS));
     }
 
     string_cat(&cmd, main_path);
-    string_cat(&cmd, string_new(" -o bin/"));
+    string_cat(&cmd, string_const(" -o bin/"));
     string_cat(&cmd, name);
 
-    string_cat(&cmd, string_new("\0"));
+    string_write_null_terminator(&cmd);
     system(cmd.text);
 }
 
@@ -61,37 +61,38 @@ BuildResult build_dynamic(String name, String main_path, u64 flags, Stack* stack
 
     String comet_o = string_from_stack(stack, 4096);
     string_cat(&comet_o, name);
-    string_cat(&comet_o, string_new(".o"));
+    string_cat(&comet_o, string_const(".o"));
 
     String comet_tmp_so = string_from_stack(stack, 4096);
     string_cat(&comet_tmp_so, name);
-    string_cat(&comet_tmp_so, string_new("_tmp.so"));
+    string_cat(&comet_tmp_so, string_const("_tmp.so"));
 
     String cmd = string_from_stack(stack, 8196);
-    string_cat(&cmd, string_new(BUILD_COMMON_PREFIX));
-    string_cat(&cmd, string_new("-c -fPIC -o build/"));
+    string_cat(&cmd, string_const(BUILD_COMMON_PREFIX));
+    string_cat(&cmd, string_const("-c -fPIC -o build/"));
     string_cat(&cmd, comet_o);
-    string_cat(&cmd, string_new(" "));
+    string_cat(&cmd, string_const(" "));
     string_cat(&cmd, main_path);
-    string_cat(&cmd, string_new("\0"));
+    string_write_null_terminator(&cmd);
     system(cmd.text);
 
     string_clear(&cmd);
-    string_cat(&cmd, string_new(BUILD_COMMON_PREFIX));
-    string_cat(&cmd, string_new("-shared build/"));
+    string_cat(&cmd, string_const(BUILD_COMMON_PREFIX));
+    string_cat(&cmd, string_const("-shared build/"));
     string_cat(&cmd, comet_o);
-    string_cat(&cmd, string_new(" -o bin/"));
+    string_cat(&cmd, string_const(" -o bin/"));
     string_cat(&cmd, comet_tmp_so);
-    string_cat(&cmd, string_new(" -lm\0"));
+    string_cat(&cmd, string_const(" -lm"));
+    string_write_null_terminator(&cmd);
     system(cmd.text);
 
     string_clear(&cmd);
-    string_cat(&cmd, string_new("mv bin/"));
+    string_cat(&cmd, string_const("mv bin/"));
     string_cat(&cmd, comet_tmp_so);
-    string_cat(&cmd, string_new(" bin/"));
+    string_cat(&cmd, string_const(" bin/"));
     string_cat(&cmd, name);
-    string_cat(&cmd, string_new(".so"));
-    string_cat(&cmd, string_new("\0"));
+    string_cat(&cmd, string_const(".so"));
+    string_write_null_terminator(&cmd);
     system(cmd.text);
 
     // TODO:

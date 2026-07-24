@@ -13,8 +13,8 @@ typedef struct {
 
 // Return a new string directly from a memory location.
 String string_init(void* buffer, u64 capacity);
-// Return a new string from a cstring. Capacity is set to the string length.
-String string_new(char* literal);
+// Return a new string from a literal cstring. Capacity is set to the string length.
+String string_const(char* literal);
 
 // Return true if both strings have equal length and the same characters.
 bool string_equals(String a, String b);
@@ -36,6 +36,8 @@ void string_write(String* string, char* chars, u64 len);
 void string_cat(String* dst, String src);
 // Write a single char to dst
 void string_write_char(String* dst, char c);
+// Writes a 0 byte to the string.
+void string_write_null_terminator(String* string);
 // Write a string representation of an integer to dst.
 void string_print_int(String* string, i64 n);
 // Write a string representation of an f64 to dst.
@@ -63,10 +65,10 @@ String string_init(void* memory, u64 capacity) {
     return string;
 }
 
-String string_new(char* cstring) {
-    u64 len = strlen(cstring);
+String string_const(char* literal) {
+    u64 len = strlen(literal);
     String string;
-    string.text = cstring;
+    string.text = literal;
     string.len = len;
     string.capacity = len;
     return string;
@@ -110,16 +112,16 @@ void string_replace_char(String* string, char original, char replacement) {
 
 void string_replace_substring(String* dst, String original, String replacement) {
     i32 string_delta = replacement.len - original.len;
-    String tmp = string_init((char[dst->len]){}, dst->len);
-    for(i32 i = 0; i < dst->len; i++) {
+    String tmp = string_init((char[dst->capacity]){}, dst->capacity);
+    for(i32 i = 0; i < dst->len;) {
         bool match = true;
         for(i32 j = 0; j < original.len; j++) {
-            if(dst->text[i + j] == original.text[j]) {
+            if(dst->text[i + j] != original.text[j]) {
                 match = false;
                 break;
             }
         }
-        if(match) {
+        if(match == true) {
             string_cat(&tmp, replacement);
             i += original.len;
         } else {
@@ -140,12 +142,16 @@ void string_write(String* dst, char* src, u64 len) {
     dst->len += len;
 }
 
-void string_cat(String* dst, String src) {
-    string_write(dst, src.text, src.len);
-}
-
 void string_write_char(String* dst, char c) {
     string_write(dst, &c, 1);
+}
+
+void string_write_null_terminator(String* string) {
+    string_write_char(string, '\0');
+}
+
+void string_cat(String* dst, String src) {
+    string_write(dst, src.text, src.len);
 }
 
 void string_print_int(String* dst, i64 n) {
@@ -189,7 +195,7 @@ void string_read_line(StringReader* reader, String* dst) {
 
 void string_read_string_token(StringReader* reader, String* dst, char delimiter) {
     char c = 0;
-    while((c = string_read_char(reader)) != 0 || c != '\n' || c != delimiter) {
+    while((c = string_read_char(reader)) != 0 && c != '\n' && c != delimiter) {
         string_write_char(dst, c);
     }
     return;
@@ -200,7 +206,7 @@ void string_read_string_token(StringReader* reader, String* dst, char delimiter)
 i64 string_read_int_token(StringReader* reader, char delimiter) {
     String tmp = string_init((char[256]){}, 256);
     string_read_string_token(reader, &tmp, delimiter);
-    string_write_char(&tmp, '\0');
+    string_write_null_terminator(&tmp);
     char* end;
     i64 n = strtol(tmp.text, &end, 10);
     errno = 0;
@@ -217,7 +223,7 @@ i64 string_read_int_token(StringReader* reader, char delimiter) {
 f64 string_read_float_token(StringReader* reader, char delimiter) { 
     String tmp = string_init((char[256]){}, 256);
     string_read_string_token(reader, &tmp, delimiter);
-    string_write_char(&tmp, '\0');
+    string_write_null_terminator(&tmp);
     char* end;
     f64 n = strtof(tmp.text, &end);
     if (end == tmp.text) {

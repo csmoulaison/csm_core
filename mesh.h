@@ -45,13 +45,13 @@ typedef enum {
 _MeshObjKey _mesh_read_key(File* file) {
     String token = string_init((char[4096]){}, 4096);
     file_read_string_token(file, &token, ' ');
-    if(string_equals(token, string_new("v"))) {
+    if(string_equals(token, string_const("v"))) {
         return MESH_OBJ_KEY_V;
-    } else if(string_equals(token, string_new("vt"))) {
+    } else if(string_equals(token, string_const("vt"))) {
         return MESH_OBJ_KEY_VT;
-    } else if(string_equals(token, string_new("vn"))) {
+    } else if(string_equals(token, string_const("vn"))) {
         return MESH_OBJ_KEY_VN;
-    } else if(string_equals(token, string_new("f"))) {
+    } else if(string_equals(token, string_const("f"))) {
         return MESH_OBJ_KEY_F;
     }
     return MESH_OBJ_KEY_NONE;
@@ -74,13 +74,13 @@ MeshData* mesh_from_obj(File* file, Stack* stack) {
 	while(file_at_end(file) == false) {
         String token = string_init((char[4096]){}, 4096);
         file_read_string_token(file, &token, ' ');
-        if(string_equals(token, string_new("v"))) {
+        if(string_equals(token, string_const("v"))) {
         	v_count++;
-        } else if(string_equals(token, string_new("vt"))) {
+        } else if(string_equals(token, string_const("vt"))) {
             vt_count++;
-        } else if(string_equals(token, string_new("vn"))) {
+        } else if(string_equals(token, string_const("vn"))) {
             vn_count++;
-        } else if(string_equals(token, string_new("f"))) {
+        } else if(string_equals(token, string_const("f"))) {
             f_count++;
         }
     	file_read_line(file, NULL);
@@ -106,18 +106,18 @@ MeshData* mesh_from_obj(File* file, Stack* stack) {
     while(file_at_end(file) == false) {
         String token = string_init((char[4096]){}, 4096);
         file_read_string_token(file, &token, ' ');
-        if(string_equals(token, string_new("v"))) {
+        if(string_equals(token, string_const("v"))) {
         	_mesh_read_float_vector(file, verts[verts_len].comps, 3);
             verts_len++;
-        } else if(string_equals(token, string_new("vt"))) {
+        } else if(string_equals(token, string_const("vt"))) {
         	v2* uv = &uvs[uvs_len];
         	_mesh_read_float_vector(file, uv->comps, 2);
         	uv->y = 1.0f - uv->y;
             uvs_len++;
-        } else if(string_equals(token, string_new("vn"))) {
+        } else if(string_equals(token, string_const("vn"))) {
         	_mesh_read_float_vector(file, norms[norms_len].comps, 3);
             norms_len++;
-        } else if(string_equals(token, string_new("f"))) {
+        } else if(string_equals(token, string_const("f"))) {
             String line = string_init((char[4096]){}, 4096);
             file_read_line(file, &line);
             string_replace_char(&line, '/', ' ');

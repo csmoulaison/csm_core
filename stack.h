@@ -84,7 +84,7 @@ void stack_clear_to_zero(Stack* stack)
 
 void* stack_alloc(Stack* stack, u64 size)
 {
-    return stack_alloc_typed(stack, size, string_new("stack_alloc"), BUFFER_TYPE_SUB).memory;
+    return stack_alloc_typed(stack, size, string_const("stack_alloc"), BUFFER_TYPE_SUB).memory;
 }
 
 Buffer stack_alloc_labeled(Stack* stack, u64 size, String label) {
