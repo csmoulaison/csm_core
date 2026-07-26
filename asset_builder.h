@@ -15,7 +15,8 @@ typedef struct {
 } Asset;
 
 typedef struct {
-    String name;
+    String type_name;
+    String struct_name;
     Asset  assets[ASSET_BUILDER_MAX_ASSETS_PER_TYPE];
     u32    assets_len;
 } AssetType;
@@ -27,9 +28,9 @@ typedef struct {
 } AssetBuilder;
 
 void asset_builder_init(AssetBuilder* builder, Stack* stack);
-void asset_builder_push_asset(AssetBuilder* builder, String tag, String type_name, void* data, u64 size);
+void asset_builder_push_asset(AssetBuilder* builder, String tag, String type_name, String struct_name, void* data, u64 size);
 void asset_builder_output_pack(AssetBuilder* builder, String path);
-void asset_builder_output_header(AssetBuilder* builder, String path);
+void asset_builder_output_source(AssetBuilder* builder, String handles_path, String data_path);
 
 #ifdef CSM_IMPLEMENTATION
 
@@ -38,10 +39,10 @@ void asset_builder_init(AssetBuilder* builder, Stack* stack) {
     builder->types_len = 0;
 }
 
-void asset_builder_push_asset(AssetBuilder* builder, String tag, String type_name, void* data, u64 size) {
+void asset_builder_push_asset(AssetBuilder* builder, String tag, String type_name, String struct_name, void* data, u64 size) {
     AssetType* type = NULL;
     for(i32 i = 0; i < builder->types_len; i++) {
-        if(string_equals(type_name, builder->types[i].name)) {
+        if(string_equals(type_name, builder->types[i].type_name)) {
             type = &builder->types[i];
             break;
         }
@@ -49,7 +50,8 @@ void asset_builder_push_asset(AssetBuilder* builder, String tag, String type_nam
 
     if(type == NULL) {
         type = &builder->types[builder->types_len];
-        type->name = type_name;
+        type->type_name = type_name;
+        type->struct_name = struct_name;
         assert(builder->types_len < ASSET_BUILDER_MAX_TYPES);
         builder->types_len++;
     }
@@ -69,26 +71,77 @@ void asset_builder_output_pack(AssetBuilder* builder, String path) {
     file_close(&file);
 }
 
-void asset_builder_output_header(AssetBuilder* builder, String path) {
-    File file = file_open(path, FILE_OPEN_WRITE);
+void asset_builder_output_source(AssetBuilder* builder, String handles_path, String data_path) {
+    // Asset handles data file
+    File file = file_open(handles_path, FILE_OPEN_WRITE);
     file_write_string(&file, string_const("// Pregenerated file. Any changes made will be erased on recompilation.\n\n"));
+
+    // Asset handle defines
     for(i32 i = 0; i < builder->types_len; i++) {
         AssetType* type = &builder->types[i];
         file_write_string(&file, string_const("#define "));
-        file_write_string(&file, type->name);
+        file_write_string(&file, type->type_name);
         file_write_string(&file, string_const("_COUNT "));
         file_print_int(&file, type->assets_len);
         file_write_string(&file, string_const("\n"));
         for(i32 j = 0; j < type->assets_len; j++) {
             Asset* asset = &type->assets[j];
             file_write_string(&file, string_const("#define "));
-            file_write_string(&file, type->name);
+            file_write_string(&file, type->type_name);
             file_write_string(&file, string_const("_"));
             file_write_string(&file, asset->tag);
+            file_write_string(&file, string_const(" "));
+            file_print_uint(&file, j);
             file_write_string(&file, string_const("\n"));
         }
         file_write_string(&file, string_const("\n"));
     }
+
+    // Asset index arrays
+    for(i32 i = 0; i < builder->types_len; i++) {
+        AssetType* type = &builder->types[i];
+        String lowercase_type = string_init((char[type->type_name.len]){}, type->type_name.len);
+        string_cat(&lowercase_type, type->type_name);
+        string_to_lower(&lowercase_type);
+
+        file_write_string(&file, string_const("u64 "));
+        file_write_string(&file, lowercase_type);
+        file_write_string(&file, string_const("_data_offsets["));
+        file_write_string(&file, type->type_name);
+        file_write_string(&file, string_const("_COUNT] = {\n"));
+        for(i32 j = 0; j < type->assets_len; j++) {
+            Asset* asset = &type->assets[j];
+            file_write_string(&file, string_const("    "));
+            file_print_uint(&file, asset->byte_index);
+            if(j != type->assets_len - 1) {
+                file_write_string(&file, string_const(","));
+            }
+            file_write_string(&file, string_const("\n"));
+        }
+        file_write_string(&file, string_const("};\n\n"));
+
+        // Getter function
+        file_write_string(&file, type->struct_name);
+        file_write_string(&file, string_const("* "));
+        file_write_string(&file, lowercase_type);
+        file_write_string(&file, string_const("_asset(char* pack, u64 handle) {\n"));
+        // return (_Data*)&pack[__data_offsets[handle]];
+        file_write_string(&file, string_const("    return ("));
+        file_write_string(&file, type->struct_name);
+        file_write_string(&file, string_const("*)&pack["));
+        file_write_string(&file, lowercase_type);
+        file_write_string(&file, string_const("_data_offsets[handle]];\n}\n\n"));
+    }
+    file_close(&file);
+
+    // Asset pack data file
+    file = file_open(data_path, FILE_OPEN_WRITE);
+    file_write_string(&file, string_const("// Pregenerated file. Any changes made will be erased on recompilation.\n\n"));
+    file_write_string(&file, string_const("extern char _binary_build_asset_pack_data_start[];\n"));
+    file_write_string(&file, string_const("extern char _binary_build_asset_pack_data_end[];\n"));
+    file_write_string(&file, string_const("extern char _binary_build_asset_pack_data_size[];\n\n"));
+    file_write_string(&file, string_const("char* asset_pack_data = _binary_build_asset_pack_data_start;\n"));
+    file_write_string(&file, string_const("char* asset_pack_size = _binary_build_asset_pack_data_size;\n"));
     file_close(&file);
 }
 

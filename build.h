@@ -3,7 +3,7 @@
 
 #define BUILD_COMMON_PREFIX "gcc -std=c99 -I code/ -I extern/ "
 #define BUILD_RELEASE_FLAGS " "
-#define BUILD_DEBUG_FLAGS   "-g "
+#define BUILD_DEBUG_FLAGS   "-g -rdynamic "
 #define BUILD_WARNING_FLAGS "-Wall -Werror -Wno-unused "
 #define BUILD_GL3W_FLAGS    "extern/GL/gl3w.c "
 #define BUILD_X11_FLAGS     "-lX11 -lX11-xcb -lGL -lm -lxcb -lXfixes "
@@ -31,6 +31,9 @@ BuildResult build_dynamic(String name, String main_path, u64 flags, Stack* stack
 BuildResult build_static(String name, String main_path, u64 flags, Stack* stack) {
     system("mkdir -p bin");
     system("mkdir -p build");
+    // NOW: not hardcode
+    system("ld -r -b binary build/asset_pack.data -o build/asset_pack.o");
+
     String cmd = string_from_stack(stack, 8196);
     string_cat(&cmd, string_const(BUILD_COMMON_PREFIX));
 
@@ -50,6 +53,8 @@ BuildResult build_static(String name, String main_path, u64 flags, Stack* stack)
     }
 
     string_cat(&cmd, main_path);
+    // NOW: not hardcode
+    string_cat(&cmd, string_const(" build/asset_pack.o"));
     string_cat(&cmd, string_const(" -o bin/"));
     string_cat(&cmd, name);
 

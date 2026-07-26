@@ -45,15 +45,15 @@ typedef struct {
 	u32 binding;
 } GlSsbo;
 
-void gl_init_start();
-void gl_init_end();
-GlProgram gl_create_program(char* vert_src, u32 vert_len, char* frag_src, u32 frag_len);
-GlProgram gl_create_program_from_files(char* vert_fname, char* frag_fname);
+void           gl_init_start();
+void           gl_init_end();
+GlProgram      gl_create_program(char* vert_src, u32 vert_len, char* frag_src, u32 frag_len);
+GlProgram      gl_create_program_from_files(char* vert_fname, char* frag_fname);
 GlVertexObject gl_create_vertex_object(u32* vert_attrib_sizes, u32 vert_attrib_sizes_len, u32 verts_len, f32* vert_data);
-GlTexture gl_create_texture(u32 width, u32 height, u8 channel_count, u8* pixels, i32 wrap_param, i32 min_filter_param, i32 max_filter_param, bool generate_mipmap);
-GlUbo gl_create_ubo(u64 size, u64 binding);
-GlSsbo gl_create_ssbo(u64 size, u64 binding);
-void gl_clear(v4 clear_color);
+GlTexture      gl_create_texture(u32 width, u32 height, u8 channel_count, u8* pixels, i32 wrap_param, i32 min_filter_param, i32 max_filter_param, bool generate_mipmap);
+GlUbo          gl_create_ubo(u64 size, u64 binding);
+GlSsbo         gl_create_ssbo(u64 size, u64 binding);
+void           gl_clear(v4 clear_color);
 
 #ifdef CSM_IMPLEMENTATION
 
@@ -98,6 +98,7 @@ u32 gl_compile_shader(const char* src, i32 src_len, GLenum type) {
 void gl_init_start() {
 	assert(gl3wInit() == 0);
 	glEnable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
@@ -148,7 +149,13 @@ GlVertexObject gl_create_vertex_object(u32* vert_attrib_sizes, u32 vert_attribs_
 	u32 cur_offset = 0;
 	for(i32 attr_index = 0; attr_index < vert_attribs_len; attr_index++) {
 		u32 attribute_size = vert_attrib_sizes[attr_index];
-		glVertexAttribPointer(attr_index, attribute_size, GL_FLOAT, GL_FALSE, sizeof(f32) * vertex_size, (void*)(cur_offset * sizeof(f32))); 
+		glVertexAttribPointer(
+    		attr_index, 
+    		attribute_size, 
+    		GL_FLOAT, 
+    		GL_FALSE, 
+    		sizeof(f32) * vertex_size, 
+    		(void*)(cur_offset * sizeof(f32))); 
 		glEnableVertexAttribArray(attr_index);
 		cur_offset += attribute_size;
 	}
@@ -211,7 +218,7 @@ GlSsbo gl_create_ssbo(u64 size, u64 binding) {
 
 void gl_clear(v4 clear_color) {
 	glClearColor(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 #endif // CSM_IMPLEMENTATION

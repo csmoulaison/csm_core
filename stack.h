@@ -6,8 +6,8 @@
 #endif
 
 #if DEBUG_STACK
-	#define DEBUG_LOGGING false
-	#define DEBUG_CAPACITY_WARNING false
+	#define DEBUG_LOGGING true
+	#define DEBUG_CAPACITY_WARNING true
 #endif
 
 typedef struct {
@@ -31,7 +31,6 @@ void   stack_clear_to_zero(Stack* stack);
 void*  stack_alloc(Stack* stack, u64 size);
 Buffer stack_alloc_labeled(Stack* stack, u64 size, String label);
 Buffer stack_alloc_typed(Stack* stack, u64 size, String label, BufferType type);
-// Defined here to clear up circular dependency.
 String string_from_stack(Stack* stack, u64 capacity);
 
 #ifdef CSM_IMPLEMENTATION
@@ -46,7 +45,13 @@ Stack stack_init(Buffer buffer, String label) {
 	stack.buffer.label = label;
 
     #if DEBUG_LOGGING
-	printf("%s: Stack initialized with size %lu.\n", label, size);
+    String log = string_init((char[4096]){}, 4096);
+    string_cat(&log, stack.buffer.label);
+    string_cat(&log, string_const(": Stack initialized. "));
+    string_print_int(&log, buffer.size);
+    string_cat(&log, string_const(" bytes"));
+    string_write_null_terminator(&log);
+	printf("%s\n", log.text);
     #endif
 #endif
 #endif
@@ -72,7 +77,11 @@ void stack_clear(Stack* stack)
 	buffer_clear_suballocations(&stack->buffer);
 
 #if DEBUG_LOGGING
-	printf("%s: Stack cleared.\n", stack->label);
+    String log = string_init((char[4096]){}, 4096);
+    string_cat(&log, stack->buffer.label);
+    string_cat(&log, string_const(": Stack cleared."));
+    string_write_null_terminator(&log);
+	printf("%s\n", log.text);
 #endif
 }
 
@@ -95,16 +104,30 @@ Buffer stack_alloc_typed(Stack* stack, u64 size, String label, BufferType type) 
 	assert(stack->memory != NULL);
 	if(stack->head + size > stack->size) {
 #if DEBUG_STACK
-#if BUFFER_TRACKING
-        // NOW: print from label
-		printf("Stack overflow! Size: %lu, Requested: %lu\n", stack->size, stack->head + size);
-#endif
+        String log = string_init((char[4096]){}, 4096);
+        string_cat(&log, stack->buffer.label);
+        string_cat(&log, string_const(": Stack overflow. Size: "));
+        string_print_int(&log, stack->size);
+        string_cat(&log, string_const(", Requested Size: "));
+        string_print_int(&log, stack->head + size);
+        string_write_null_terminator(&log);
+		printf("%s\n", log.text);
 #endif
 		panic();
 	}
 
 #if DEBUG_LOGGING
-	printf("%s: Stack allocation from %lu-%lu (%lu bytes)\n", stack->label, stack->head, stack->head + size, size);
+    String log = string_init((char[4096]){}, 4096);
+    string_cat(&log, stack->buffer.label);
+    string_cat(&log, string_const(": Stack allocation from "));
+    string_print_int(&log, stack->head);
+    string_cat(&log, string_const("-"));
+    string_print_int(&log, stack->head + size);
+    string_cat(&log, string_const(". "));
+    string_print_int(&log, size);
+    string_cat(&log, string_const(" bytes"));
+    string_write_null_terminator(&log);
+	printf("%s\n", log.text);
 #endif
 
 	Buffer buffer = buffer_alloc_typed(&stack->buffer, stack->head, size, label, type);
@@ -112,12 +135,15 @@ Buffer stack_alloc_typed(Stack* stack, u64 size, String label, BufferType type) 
 
 #if DEBUG_CAPACITY_WARNING
 	if(stack->head > stack->size / 2) {
-		printf("%s: Stack more than half full!\n", stack->label);
+        String log = string_init((char[4096]){}, 4096);
+        string_cat(&log, stack->buffer.label);
+        string_cat(&log, string_const(": Stack more than half full"));
+        string_write_null_terminator(&log);
+    	printf("%s\n", log.text);
 	}
 #endif
 
     return buffer;
-	//return &stack->memory[stack->head - size];
 }
 
 String string_from_stack(Stack* stack, u64 capacity) {

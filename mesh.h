@@ -101,7 +101,7 @@ MeshData* mesh_from_obj(File* file, Stack* stack) {
     _MeshObjFaceVertex* face_verts = (_MeshObjFaceVertex*)(stack_alloc(stack, face_bytes));
     i32 face_verts_len = 0;
 
-    // Read/store line data 
+    // Read/store line data
     file_seek_start(file);
     while(file_at_end(file) == false) {
         String token = string_init((char[4096]){}, 4096);
@@ -112,7 +112,7 @@ MeshData* mesh_from_obj(File* file, Stack* stack) {
         } else if(string_equals(token, string_const("vt"))) {
         	v2* uv = &uvs[uvs_len];
         	_mesh_read_float_vector(file, uv->comps, 2);
-        	uv->y = 1.0f - uv->y;
+        	//uv->y = 1.0f - uv->y;
             uvs_len++;
         } else if(string_equals(token, string_const("vn"))) {
         	_mesh_read_float_vector(file, norms[norms_len].comps, 3);
@@ -122,16 +122,17 @@ MeshData* mesh_from_obj(File* file, Stack* stack) {
             file_read_line(file, &line);
             string_replace_char(&line, '/', ' ');
             StringReader reader = string_reader_init(&line);
-            // NOW: I think this be correct. not thinking fully through it right now.
             for(i32 i = 0; i < 3; i++) {
-                _MeshObjFaceVertex* fvert = &face_verts[face_verts_len];
+                _MeshObjFaceVertex* face_vert = &face_verts[face_verts_len];
                 for(i32 j = 0; j < 3; j++) {
-                    fvert->data[j] = string_read_int_token(&reader, ' ');
+                    face_vert->data[j] = string_read_int_token(&reader, ' ');
                 }
                 face_verts_len++;
             }
+            string_write_null_terminator(&line);
+        } else {
+        	file_read_line(file, NULL);
         }
-    	file_read_line(file, NULL);    	
     }
 
     // Populate mesh data
@@ -141,6 +142,7 @@ MeshData* mesh_from_obj(File* file, Stack* stack) {
      
 	for(i32 i = 0; i < face_verts_len; i++) {
     	_MeshObjFaceVertex face_vert = face_verts[i];
+    	// face line indices are 0 indexed for some reason, so we sub 1.
     	i32 vert_index = face_vert.position - 1;
     	i32 uv_index   = face_vert.uv - 1;
     	i32 norm_index = face_vert.normal - 1;

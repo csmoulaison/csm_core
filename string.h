@@ -135,7 +135,7 @@ void string_replace_substring(String* dst, String original, String replacement) 
 
 void string_write(String* dst, char* src, u64 len) {
     if(dst->len + len > dst->capacity) {
-        fprintf(stderr, "String capacity overflow. Capacity: %u, Write len: %u\n", dst->capacity, len);
+        fprintf(stderr, "String capacity overflow. Capacity: %lu, Write len: %lu\n", dst->capacity, len);
         panic();
     }
     memcpy(&dst->text[dst->len], src, len);
@@ -195,9 +195,12 @@ void string_read_line(StringReader* reader, String* dst) {
 
 void string_read_string_token(StringReader* reader, String* dst, char delimiter) {
     char c = 0;
+    u32 len = 0;
     while((c = string_read_char(reader)) != 0 && c != '\n' && c != delimiter) {
         string_write_char(dst, c);
+        len++;
     }
+    assert(len > 0);
     return;
 }
 

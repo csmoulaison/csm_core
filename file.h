@@ -101,11 +101,11 @@ void file_write_string(File* file, String string) {
 }
 
 void file_print_uint(File* file, u64 n) {
-    fprintf(file->handle, "%u", n);
+    fprintf(file->handle, "%lu", n);
 }
 
 void file_print_int(File* file, i64 n) {
-    fprintf(file->handle, "%d", n);
+    fprintf(file->handle, "%ld", n);
 }
 
 void file_print_float(File* file, f64 n) {
@@ -147,6 +147,7 @@ u64 file_read_string_token(File* file, String* dst, char delimiter) {
         }
         len++;
     }
+    assert(len > 0);
     return len;
 }
 
