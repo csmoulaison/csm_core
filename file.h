@@ -15,6 +15,7 @@ File file_open(String fname, FileOpenMode mode);
 void file_close(File* file);
 u64 file_size(File* file);
 u64 file_last_modified(File* file);
+u64 file_path_last_modified(String path);
 
 void file_write(File* file, void* data, u64 len);
 void file_write_char(File* file, char c);
@@ -86,6 +87,15 @@ u64 file_last_modified(File* file) {
     struct stat stat;
     assert(fstat(descriptor, &stat) == 0);
     return (u64)stat.st_mtime;
+}
+
+u64 file_path_last_modified(String path) {
+    String cpath = string_init((char[path.len + 1]){}, path.len + 1);
+    string_cat(&cpath, path);
+    string_write_null_terminator(&cpath);
+    struct stat file_stat;
+    stat(cpath.text, &file_stat);
+    return file_stat.st_mtim.tv_sec;
 }
 
 void file_write(File* file, void* data, u64 len) {
