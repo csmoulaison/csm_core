@@ -8,12 +8,13 @@ typedef struct {
             u8 r, g, b, a;
         } components;
     };
-} TexturePixelData;
+} TexturePixel32;
 
 typedef struct {
     u64 width;
     u64 height;
-    TexturePixelData pixels[];
+    u8  channels;
+    u8  pixel_buffer[];
 } TextureData;
 
 #pragma pack(push, 1)
@@ -36,8 +37,9 @@ typedef struct {
 } TextureBmpInfo;
 #pragma pack(pop)
 
+// TODO: choose channels when loading
 TextureData* texture_from_bmp(File* file, Stack* stack);
-u64 texture_size_from_dimensions(u64 width, u64 height);
+u64 texture_size_from_dimensions(u64 width, u64 height, u8 channels);
 u64 texture_size(TextureData* texture);
 
 #ifdef CSM_IMPLEMENTATION
@@ -52,27 +54,29 @@ TextureData* texture_from_bmp(File* file, Stack* stack) {
     assert(info.compression == 0);
 
     TextureData* data = (TextureData*)stack_alloc(
-        stack, texture_size_from_dimensions(info.width, info.height));
+        stack, texture_size_from_dimensions(info.width, info.height, 4));
     data->width = info.width;
     data->height = info.height;
+    data->channels = 4;
     for(i32 i = 0; i < info.width * info.height; i++) {
-        u8 pixels[4];
-        file_read(file, pixels, sizeof(pixels));
+        u8 src[4];
+        file_read(file, src, sizeof(src));
+        TexturePixel32* dst = (TexturePixel32*)&data->pixel_buffer[i * 4];
         // BMP files store pixels in ABGR order.
-        data->pixels[i].components.r = pixels[3];
-        data->pixels[i].components.g = pixels[2];
-        data->pixels[i].components.b = pixels[1];
-        data->pixels[i].components.a = pixels[0];
+        dst->components.r = src[3];
+        dst->components.g = src[2];
+        dst->components.b = src[1];
+        dst->components.a = src[0];
     }
     return data;
 }
 
-u64 texture_size_from_dimensions(u64 width, u64 height) {
-    return sizeof(TextureData) + width * height * sizeof(TexturePixelData);
+u64 texture_size_from_dimensions(u64 width, u64 height, u8 channels) {
+    return sizeof(TextureData) + width * height * channels;
 }
 
 u64 texture_size(TextureData* data) {
-    return texture_size_from_dimensions(data->width, data->height);
+    return texture_size_from_dimensions(data->width, data->height, data->channels);
 }
 
 #endif

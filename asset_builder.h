@@ -29,6 +29,7 @@ typedef struct {
 
 void asset_builder_init(AssetBuilder* builder, Stack* stack);
 void asset_builder_push_asset(AssetBuilder* builder, String tag, String type_name, String struct_name, void* data, u64 size);
+u64  asset_builder_next_handle_of_type(AssetBuilder* builder, String type_name);
 void asset_builder_output_pack(AssetBuilder* builder, String path);
 void asset_builder_output_source(AssetBuilder* builder, String handles_path, String data_path);
 
@@ -63,6 +64,17 @@ void asset_builder_push_asset(AssetBuilder* builder, String tag, String type_nam
     asset->byte_index = builder->stack->head;
     void* dst = stack_alloc(builder->stack, size);
     memcpy(dst, data, size);
+}
+
+u64 asset_builder_next_handle_of_type(AssetBuilder* builder, String type_name) {
+    u64 type_count = 0;
+    for(i32 i = 0; i < builder->types_len; i++) {
+        if(string_equals(type_name, builder->types[i].type_name)) {
+            type_count++;
+        }
+    }
+    // NOW: why is this needing iterate by 1? 
+    return type_count + 1;
 }
 
 void asset_builder_output_pack(AssetBuilder* builder, String path) {
